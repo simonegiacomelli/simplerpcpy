@@ -27,6 +27,9 @@ class WJob:
         self.result = None
         self.done = False
 
+    def __repr__(self):
+        return f'{self.job_id} done={self.done}'
+
 
 class WorkerAbc:
     def get_job(self, timeout=0) -> WJob:

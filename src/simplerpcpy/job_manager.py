@@ -30,7 +30,7 @@ class MJob(MJobAbc):
         return not self.done and not self.worker
 
     def __repr__(self):
-        return f'{self.job_id} {self.done}'
+        return f'{self.job_id} done={self.done}'
 
 
 class MWorker:
