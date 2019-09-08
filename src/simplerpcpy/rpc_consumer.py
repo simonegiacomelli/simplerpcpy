@@ -1,12 +1,16 @@
 import json
+from typing import TypeVar, Generic
 
 from simplerpcpy.messaging import Client
 
+T = TypeVar("T")
+
 
 # class _Instrument
-class RpcConsumer:
+class RpcConsumer(Generic[T]):
 
-    def __init__(self, topic: str, client: Client, proxy):
+    def __init__(self, topic: str, client: Client, proxy: T):
+        self.rpc: T = proxy
         self.topic = topic
         self.client = client
         redirect_all_calls(proxy, self._handle)

@@ -25,10 +25,9 @@ client = ClientMock()
 
 class ConsumerTest(unittest.TestCase):
     def test1(self):
-        proxy = Proxy()
-        RpcConsumer('topic1', client, proxy)
-        proxy.hello1()
-        proxy.hello2('Foo')
+        target = RpcConsumer('topic1', client, Proxy())
+        target.rpc.hello1()
+        target.rpc.hello2('Foo')
         self.assertEqual(len(client.messages), 2)
         h1 = client.messages[0][1]
         h2 = client.messages[1][1]
