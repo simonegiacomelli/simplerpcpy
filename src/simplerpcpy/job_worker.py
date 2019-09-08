@@ -1,9 +1,11 @@
 import os
 import platform
+import threading
 import time
 import uuid
 from threading import Thread
 
+from simplerpcpy.job_abc import WorkerAbc, WJob
 from simplerpcpy.rpc_consumer import RpcConsumer
 from .distributed_conf import MqttConfiguration
 from .job_rpc import ManagerRpc, WorkerRpc
@@ -12,20 +14,14 @@ from .name_generator import GetRandomName
 from .rpc_provider import RpcProvider
 
 
-class WJob:
-    def __init__(self, job_id, job):
-        self.job_id = job_id
-        self.job = job
-
-
-class Worker(WorkerRpc):
+class Worker(WorkerRpc, WorkerAbc):
     def __init__(self, mqtt_conf: MqttConfiguration, client: Client):
         self.mqtt_conf = mqtt_conf
         unique_id = f'{mqtt_conf.manager_queue}/worker/{platform.node()}/{os.getpid()}/{uuid.getnode()}'
         self.worker_endpoint_id = unique_id
         self.call_sign = GetRandomName(0)
         self.job: WJob = None
-
+        self.signal = threading.Event()
         self.rpc_provider = RpcProvider(self.worker_endpoint_id, client, self)
 
         self.manager: ManagerRpc = RpcConsumer(mqtt_conf.manager_queue, client, ManagerRpc()).rpc
@@ -38,8 +34,12 @@ class Worker(WorkerRpc):
     def _signal_status(self):
         while True:
             job = self.job
-            self.manager.signal_status(self.worker_endpoint_id, self.call_sign, None if not job else job.job_id)
-            time.sleep(self.mqtt_conf.presence_interval_seconds)
+            if job:
+                self.manager.signal_done(self.worker_endpoint_id, self.job.job_id, result)
+
+                self.manager.signal_status(self.worker_endpoint_id, self.call_sign, None if not job else job.job_id, )
+            self.signal.clear()
+            self.signal.wait(self.mqtt_conf.presence_interval_seconds)
 
     def assign_job(self, new_job_id, new_job):
         print('assign_job', new_job_id, new_job)
@@ -49,7 +49,7 @@ class Worker(WorkerRpc):
             if job.job_id == new_job_id:
                 print(f'job {new_job_id} was already accepted')
             else:
-                pass
+                print(f'job {new_job_id} is rejected')
                 # self.manager.job_rejected(new_job_id)
             return
 
@@ -57,8 +57,14 @@ class Worker(WorkerRpc):
         # self.manager.job_accepted(new_job_id)
 
     def get_job(self) -> WJob:
-        return self.job
+        if self.job and self.job.done:
+            return None
+        else:
+            return self.job
 
     def job_done(self, result):
-        self.manager.signal_done(self.worker_endpoint_id, self.job.job_id, result)
-        self.job = None
+        assert self.job
+        assert not self.job.done
+        self.job.result = result
+        self.job.done = True
+        self.signal.set()

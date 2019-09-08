@@ -9,3 +9,6 @@ class Client:
 
     def subscribe(self, topic: str, listener: Subscriber):
         raise NotImplemented()
+
+    def unsubscribe(self, topic):
+        raise NotImplemented()

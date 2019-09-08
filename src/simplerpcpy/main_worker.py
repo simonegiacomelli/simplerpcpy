@@ -1,8 +1,8 @@
 import time
 
-from distributed_conf import distrib_conf_test
-from gmqtt_client import GmqttClient
-from rpc_worker import Worker
+from simplerpcpy.distributed_conf_instances import distrib_conf_test
+from simplerpcpy.gmqtt_client import GmqttClient
+from simplerpcpy.job_worker import Worker
 
 
 def main():

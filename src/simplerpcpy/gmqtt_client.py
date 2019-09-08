@@ -9,8 +9,8 @@ from typing import Dict, Set
 
 from gmqtt import Client as MQTTClient
 
-from distributed.distributed_conf import BrokerConfig
-from distributed.messaging import Client, Subscriber
+from simplerpcpy.distributed_conf import BrokerConfig
+from simplerpcpy.messaging import Client, Subscriber
 
 
 class GmqttClient(Client):
@@ -45,6 +45,13 @@ class GmqttClient(Client):
         self.all_listeners[topic] = listener
         self.ready.wait()
         self.PROCESS.set()
+
+    def unsubscribe(self, topic):
+        listener = self.all_listeners.get(topic, None)
+        if not listener:
+            raise Exception(f'Topic {topic} was not registered')
+        self.all_listeners.pop(topic)
+        self.active_listeners.discard(topic)
 
     def connect(self) -> Client:
         if self.client:
@@ -108,6 +115,8 @@ class GmqttClient(Client):
         self._sync_subscriptions()
 
     def _sync_subscriptions(self):
+        if not self.client.is_connected:
+            return
         unregistered = self.all_listeners.keys() - self.active_listeners
         for topic in unregistered:
             self.client.subscribe(topic, qos=1)

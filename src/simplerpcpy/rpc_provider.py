@@ -20,4 +20,4 @@ class RpcProvider:
             print(traceback.format_exc(ex))
 
     def unsubscribe(self):
-        self.client.subscribe(self.topic)
+        self.client.unsubscribe(self.topic)

@@ -1,9 +1,9 @@
 import time
 
-from simplerpcpy.distributed_conf import distrib_conf_test
+from simplerpcpy.distributed_conf_instances import distrib_conf_test
 from simplerpcpy.gmqtt_client import GmqttClient
-from simplerpcpy.job_manager import Job
-from simplerpcpy.rpc_manager import Manager
+from simplerpcpy.job_abc import MJobAbc
+from simplerpcpy.job_manager import Manager
 from simplerpcpy.window_rate import WindowRate
 
 
@@ -21,7 +21,7 @@ def main():
               f'free workers={len([1 for id, w in manager.workers.items() if w.free])}')
         if counter % 10 == 0:
             for b in range(1, 21):
-                job = Job(f'{counter}+{b}')
+                job = MJobAbc(f'{counter}+{b}')
                 manager.add(job)
                 left_todo.add(job)
         counter += 1
