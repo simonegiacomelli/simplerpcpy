@@ -69,15 +69,17 @@ class Worker(WorkerRpc, WorkerAbc):
     def get_job(self, timeout=0) -> WJob:
         job = self._get_job()
         if not job and timeout > 0:
+            self.signal_done.clear()
             self.signal_todo.wait(timeout)
         job = self._get_job()
         return job
 
     def _get_job(self):
-        if self.job and self.job.done:
+        job = self.job
+        if job and job.done:
             return None
         else:
-            return self.job
+            return job
 
     def job_done(self, job_id):
         if self.job and self.job.job_id == job_id:
