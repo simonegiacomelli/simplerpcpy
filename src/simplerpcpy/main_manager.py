@@ -21,8 +21,7 @@ def main():
               f'free workers={len([1 for id, w in manager.workers.items() if w.free])}')
         if counter % 10 == 0:
             for b in range(1, 21):
-                job = MJobAbc(f'{counter}+{b}')
-                manager.add(job)
+                job = manager.add(f'{counter}+{b}')
                 left_todo.add(job)
         counter += 1
 
@@ -35,7 +34,7 @@ def main():
             wr.spin()
             done_count += 1
             left_todo -= {job}
-            assert eval(job.job), job.result
+            assert eval(job.job_payload), job.result
             # print('job done!', job.job, '=', job.result)
         time.sleep(1)
 

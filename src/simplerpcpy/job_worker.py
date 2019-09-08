@@ -21,7 +21,8 @@ class Worker(WorkerRpc, WorkerAbc):
         self.worker_endpoint_id = unique_id
         self.call_sign = GetRandomName(0)
         self.job: WJob = None
-        self.signal = threading.Event()
+        self.signal_done = threading.Event()
+        self.signal_todo = threading.Event()
         self.rpc_provider = RpcProvider(self.worker_endpoint_id, client, self)
 
         self.manager: ManagerRpc = RpcConsumer(mqtt_conf.manager_queue, client, ManagerRpc()).rpc
@@ -34,17 +35,25 @@ class Worker(WorkerRpc, WorkerAbc):
     def _signal_status(self):
         while True:
             job = self.job
+            job_id = None
+            job_done = False
+            job_result = None
             if job:
-                self.manager.signal_done(self.worker_endpoint_id, self.job.job_id, result)
+                job_id = job.job_id
+                job_done = job.done
+                job_result = job.result
+            self.manager.signal_status(self.worker_endpoint_id, self.call_sign, job_id, job_done, job_result)
+            self.signal_done.clear()
+            self.signal_done.wait(self.mqtt_conf.presence_interval_seconds)
 
-                self.manager.signal_status(self.worker_endpoint_id, self.call_sign, None if not job else job.job_id, )
-            self.signal.clear()
-            self.signal.wait(self.mqtt_conf.presence_interval_seconds)
+    def reset_job(self, job_id):
+        if self.job and self.job.job_id == job_id:
+            self.job = None
 
     def assign_job(self, new_job_id, new_job):
         print('assign_job', new_job_id, new_job)
         job = self.job
-        if job:
+        if job and not job.done:
             print(f'job {job} is locally present')
             if job.job_id == new_job_id:
                 print(f'job {new_job_id} was already accepted')
@@ -54,17 +63,23 @@ class Worker(WorkerRpc, WorkerAbc):
             return
 
         self.job = WJob(new_job_id, new_job)
+        self.signal_todo.set()
         # self.manager.job_accepted(new_job_id)
 
-    def get_job(self) -> WJob:
+    def get_job(self, timeout=0) -> WJob:
+        job = self._get_job()
+        if not job and timeout > 0:
+            self.signal_todo.wait(timeout)
+        job = self._get_job()
+        return job
+
+    def _get_job(self):
         if self.job and self.job.done:
             return None
         else:
             return self.job
 
-    def job_done(self, result):
-        assert self.job
-        assert not self.job.done
-        self.job.result = result
-        self.job.done = True
-        self.signal.set()
+    def job_done(self, job_id):
+        if self.job and self.job.job_id == job_id:
+            self.job.done = True
+            self.signal_done.set()

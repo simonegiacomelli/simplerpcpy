@@ -20,10 +20,17 @@ class MJob(MJobAbc):
         self.worker = None
 
     def assign(self, worker: 'MWorker'):
-        assert not self.worker
-        assert not worker.job
+        assert not self.worker, self.worker
+        assert not worker.job, worker.job
         worker.job = self
         self.worker = worker
+
+    @property
+    def assignable(self):
+        return not self.done and not self.worker
+
+    def __repr__(self):
+        return f'{self.job_id} {self.done}'
 
 
 class MWorker:
@@ -31,13 +38,15 @@ class MWorker:
     call_sign = ''
     last_signal_time = None
     worker_rpc: WorkerRpc = None
-    accepted_time = None
     job: MJob = None
     working_on_unknown = False
 
     @property
     def free(self):
         return not self.job and not self.working_on_unknown
+
+    def __repr__(self):
+        return f'{self.call_sign} job={self.job}'
 
 
 class Manager(ManagerRpc, ManagerAbc):
@@ -59,22 +68,34 @@ class Manager(ManagerRpc, ManagerAbc):
         self.rpc_provider.unsubscribe()
 
     def add(self, job) -> MJobAbc:
+        assert not isinstance(job, MJobAbc), type(job)
         mjob = MJob(job)
-        self.jobs[mjob.job_id] = mjob
+
+        def _add():
+            self.jobs[mjob.job_id] = mjob
+
+        self._lock(_add)
         return mjob
 
     def get_done(self, timeout=0) -> MJobAbc:
-        if timeout > 0 and len(self.done) == 0:
+        def safe():
+            job = next((j for j in self.jobs.values() if j.done), None)
+            if job:
+                self.jobs.pop(job.job_id)
+            return job
+
+        job = self._lock(safe)
+        if timeout > 0 and not job:
             self.ready.clear()
             self.ready.wait(timeout)
-        if len(self.done) > 0:
-            return self.done.pop(0)
-        return None
+        if not job:
+            job = self._lock(safe)
+        return job
 
     def _lock(self, cmd):
         self.lock.acquire()
         try:
-            cmd()
+            return cmd()
         finally:
             self.lock.release()
 
@@ -101,6 +122,10 @@ class Manager(ManagerRpc, ManagerAbc):
         if worker.job and worker.job == job and not job.done and job_done:
             job.result = job_result
             job.done = True
+            job.worker = None
+            worker.job = None
+            self.ready.set()
+            worker.worker_rpc.reset_job(job_id)
 
     def _get_worker(self, worker_endpoint_id, call_sign=None):
         worker = self.workers.get(worker_endpoint_id, None)
@@ -135,14 +160,13 @@ class Manager(ManagerRpc, ManagerAbc):
 
     def _assign_jobs(self):
         while True:
-            worker, job = self._get_free_worker(), self._get_job_todo()
-            if not (worker and job):
+            worker = next((w for w in self.workers.values() if w.free), None)
+            job = next((j for j in self.jobs.values() if j.assignable), None)
+            if not worker:
+                # print('no worker')
+                return
+            if not job:
+                # print('no job')
                 return
             job.assign(worker)
-            worker.worker_rpc.assign_job(job.job_id, job.job)
-
-    def _get_free_worker(self) -> 'MWorker':
-        return next((w for queue, w in self.workers.items() if w.free), None)
-
-    def _get_job_todo(self) -> MJob:
-        return next((j for j in self.jobs.values() if not j.done), None)
+            worker.worker_rpc.assign_job(job.job_id, job.job_payload)

@@ -13,9 +13,9 @@ def main():
         if job:
             # time.sleep(1)
             result = eval(job.job)
-            print(job.job, result)
             job.result = result
-            worker.job_done()
+            print(job.job, result)
+            worker.job_done(job.job_id)
         else:
             time.sleep(1)
 

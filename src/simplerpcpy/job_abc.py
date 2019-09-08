@@ -5,13 +5,13 @@ from typing import Dict
 class MJobAbc:
     def __init__(self, job):
         self.job_id = str(uuid.uuid4())
-        self.job = job
+        self.job_payload = job
         self.done = False
         self.result = None
 
 
 class ManagerAbc:
-    jobs: Dict[MJobAbc] = None
+    jobs: Dict[str, MJobAbc] = None
 
     def add(self, job) -> MJobAbc:
         raise NotImplemented()
@@ -29,8 +29,8 @@ class WJob:
 
 
 class WorkerAbc:
-    def get_job(self) -> WJob:
+    def get_job(self, timeout=0) -> WJob:
         raise NotImplemented()
 
-    def job_done(self, result):
+    def job_done(self, job_id):
         raise NotImplemented()

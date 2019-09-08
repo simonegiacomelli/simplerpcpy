@@ -1,6 +1,3 @@
-from simplerpcpy.distributed_conf_instances import distrib_conf_test
-
-
 class BrokerConfig:
     hostname = 'mqtt.flespi.io'
     username = 'NaDoY3zFmGhB1z1eGAlXyLx48bsSgjVTjm68dtBoZGPO5GQA42nsDKnzLDfPM0xU'  # this is a flespi token

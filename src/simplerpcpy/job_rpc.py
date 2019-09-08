@@ -8,3 +8,6 @@ class WorkerRpc:
 
     def assign_job(self, job_id, job):
         raise NotImplemented()
+
+    def reset_job(self, job_id):
+        raise NotImplemented()
