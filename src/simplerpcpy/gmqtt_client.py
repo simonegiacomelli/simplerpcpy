@@ -136,6 +136,6 @@ class GmqttClient(Client):
         print('Disconnected', id(self))
         self.PROCESS.set()
 
-    def on_subscribe(self, client, mid, qos):
+    def on_subscribe(self, client, mid, qos, *args, **kwargs):
         # print('SUBSCRIBED')
         pass
