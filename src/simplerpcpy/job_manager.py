@@ -77,7 +77,7 @@ class Manager(ManagerRpc, ManagerAbc):
         self._lock(_add)
         return mjob
 
-    def get_done(self, timeout=0) -> MJobAbc:
+    def get_done(self, timeout=0.5) -> MJobAbc:
         def safe():
             job = next((j for j in self.jobs.values() if j.done), None)
             if job:
@@ -87,7 +87,7 @@ class Manager(ManagerRpc, ManagerAbc):
         job = self._lock(safe)
         if timeout > 0 and not job:
             self.ready.clear()
-            self.ready.wait(float(timeout))
+            self.ready.wait(timeout)
         if not job:
             job = self._lock(safe)
         return job

@@ -7,7 +7,7 @@ def main():
     worker = Worker(distrib_conf, GmqttClient(distrib_conf.broker_config).connect())
     print(f'{worker.call_sign} is ready')
     while True:
-        job = worker.get_job(1)
+        job = worker.get_job()
         if job:
             result = eval(job.job)
             job.result = result

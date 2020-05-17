@@ -26,7 +26,7 @@ def main():
         counter += 1
 
         while True:
-            job = manager.get_done(0.2)
+            job = manager.get_done()
             if not job:
                 break
             wr.spin()

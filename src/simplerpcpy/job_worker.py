@@ -66,12 +66,12 @@ class Worker(WorkerRpc, WorkerAbc):
         self.signal_todo.set()
         # self.manager.job_accepted(new_job_id)
 
-    def get_job(self, timeout=0) -> WJob:
+    def get_job(self, timeout=0.5) -> WJob:
         job = self._get_job()
         if not job and timeout > 0:
-            self.signal_done.clear()
-            self.signal_todo.wait(float(timeout))
-        job = self._get_job()
+            self.signal_todo.clear()
+            self.signal_todo.wait(1)
+            job = self._get_job()
         return job
 
     def _get_job(self):
