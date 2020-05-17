@@ -6,8 +6,8 @@ create environment with python 3
 
 `pip install -r requirements.txt`
 
-`cd src
-`
+`cd src`
+
 `python main_manager.py`
 
 In another terminal
