@@ -19,15 +19,14 @@ def main():
               , f' todo={len(left_todo)} done={done_count}',
               f'free workers={len([1 for id, w in manager.workers.items() if w.free])}')
         if counter % 10 == 0:
+            print('adding new jobs to the queue')
             for b in range(1, 21):
                 job = manager.add(f'{counter}+{b}')
                 left_todo.add(job)
         counter += 1
 
-        timeout = 1
         while True:
-            job = manager.get_done()
-            timeout = 0
+            job = manager.get_done(0.2)
             if not job:
                 break
             wr.spin()

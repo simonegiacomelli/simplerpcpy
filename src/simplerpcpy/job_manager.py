@@ -87,7 +87,7 @@ class Manager(ManagerRpc, ManagerAbc):
         job = self._lock(safe)
         if timeout > 0 and not job:
             self.ready.clear()
-            self.ready.wait(timeout)
+            self.ready.wait(float(timeout))
         if not job:
             job = self._lock(safe)
         return job

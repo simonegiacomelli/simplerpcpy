@@ -70,7 +70,7 @@ class Worker(WorkerRpc, WorkerAbc):
         job = self._get_job()
         if not job and timeout > 0:
             self.signal_done.clear()
-            self.signal_todo.wait(timeout)
+            self.signal_todo.wait(float(timeout))
         job = self._get_job()
         return job
 
