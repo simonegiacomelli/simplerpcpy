@@ -1,6 +1,6 @@
 class BrokerConfig:
-    hostname = 'mqtt.flespi.io'
-    username = '6XidtbbkABE4iz07XCwRuBZPnlmQtLNqxTrOTsYjSrb0QZVDrfiKG6pShzyzbbNw'  # this is a flespi token
+    hostname = ''  # for example: 'mqtt.flespi.io'
+    username = ''  # for example a flespi token
     password = None
     port = 1883
     ssl = False

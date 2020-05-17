@@ -1,15 +1,14 @@
 import time
 
-from simplerpcpy.distributed_conf_instances import distrib_conf_test
+from distributed_conf_instances import distrib_conf
 from simplerpcpy.gmqtt_client import GmqttClient
-from simplerpcpy.job_abc import MJobAbc
 from simplerpcpy.job_manager import Manager
 from simplerpcpy.window_rate import WindowRate
 
 
 def main():
-    client = GmqttClient(distrib_conf_test.broker_config).connect()
-    manager = Manager(distrib_conf_test, client)
+    client = GmqttClient(distrib_conf.broker_config).connect()
+    manager = Manager(distrib_conf, client)
 
     counter = 0
     wr = WindowRate(10)
