@@ -8,7 +8,6 @@ create environment with python 3
 
 `cd src`
 
-
 `python main_manager.py`
 
 In another terminal
