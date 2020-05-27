@@ -1,4 +1,4 @@
-from distributed_conf_instances import distrib_conf
+from config import distrib_conf
 from simplerpcpy.gmqtt_client import GmqttClient
 from simplerpcpy.job_worker import Worker
 
