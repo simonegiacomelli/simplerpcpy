@@ -8,6 +8,7 @@ class MJobAbc:
         self.job_payload = job
         self.done = False
         self.result = None
+        self.done_by = None
 
 
 class ManagerAbc:

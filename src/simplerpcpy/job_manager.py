@@ -122,6 +122,7 @@ class Manager(ManagerRpc, ManagerAbc):
         if worker.job and worker.job == job and not job.done and job_done:
             job.result = job_result
             job.done = True
+            job.done_by = worker.call_sign
             job.worker = None
             worker.job = None
             self.ready.set()

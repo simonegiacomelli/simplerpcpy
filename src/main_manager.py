@@ -32,6 +32,7 @@ def main():
             wr.spin()
             done_count += 1
             left_todo -= {job}
+            print(f'job {job.job_id} done by ' + job.done_by)
             assert eval(job.job_payload), job.result
         time.sleep(1)
 
