@@ -1,4 +1,4 @@
-print('executed',__file__)
+
 class BrokerConfig:
     hostname = ''  # for example: 'mqtt.flespi.io'
     username = ''  # for example a flespi token
