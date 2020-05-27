@@ -33,7 +33,6 @@ def main():
             done_count += 1
             left_todo -= {job}
             assert eval(job.job_payload), job.result
-            # print('job done!', job.job, '=', job.result)
         time.sleep(1)
 
 
