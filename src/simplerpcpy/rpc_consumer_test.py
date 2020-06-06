@@ -12,7 +12,7 @@ class ClientMock(Client):
         self.messages.append((topic, json.loads(payload)))
 
 
-class Proxy:
+class Target:
     def hello1(self):
         print('hello1')
 
@@ -20,17 +20,17 @@ class Proxy:
         print('hello2', name)
 
 
-client = ClientMock()
 
 
 class ConsumerTest(unittest.TestCase):
     def test1(self):
-        target = RpcConsumer('topic1', client, Proxy())
+        mock = ClientMock()
+        target = RpcConsumer('topic1', mock, Target())
         target.rpc.hello1()
         target.rpc.hello2('Foo')
-        self.assertEqual(len(client.messages), 2)
-        h1 = client.messages[0][1]
-        h2 = client.messages[1][1]
+        self.assertEqual(len(mock.messages), 2)
+        h1 = mock.messages[0][1]
+        h2 = mock.messages[1][1]
         self.assertEqual(h1['method'], 'hello1')
         self.assertEqual(h2['method'], 'hello2')
         self.assertEqual(h2['args'], ['Foo'])
