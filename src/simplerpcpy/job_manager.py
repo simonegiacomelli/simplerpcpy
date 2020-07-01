@@ -84,12 +84,14 @@ class Manager(ManagerRpc, ManagerAbc):
                 self.jobs.pop(job.job_id)
             return job
 
-        job = self._lock(safe)
-        if timeout > 0 and not job:
-            self.ready.clear()
-            self.ready.wait(timeout)
-        if not job:
+        job = None
+        while job is None:
             job = self._lock(safe)
+            if timeout == 0:
+                break
+            if not job:
+                self.ready.clear()
+                self.ready.wait(timeout)
         return job
 
     def _lock(self, cmd):

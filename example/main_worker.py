@@ -9,10 +9,9 @@ def main():
     while True:
         job = worker.get_job()
         if job:
-            a = job.job['a']
-            b = job.job['b']
-            job.result = a + b
-            print(f'{worker.call_sign} did {a}+{b}={job.result}')
+            result = eval(job.job)
+            job.result = result
+            print(job.job, result)
             worker.job_done(job.job_id)
 
 
